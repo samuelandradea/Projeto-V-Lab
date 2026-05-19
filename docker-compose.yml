@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vlab
+      POSTGRES_PASSWORD: vlab
+      POSTGRES_DB: vlab
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vlab"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://vlab:vlab@db:5432/vlab
+      API_KEY: vlab-secret-key-2024
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
